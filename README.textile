@@ -2,14 +2,27 @@ h1. Introduction
 
 XmlTools is a small set of utility methods that make working with xml a lot less tedious in Java. Often
 picking apart xml content in Java involves a lot of boiler plate code related to handling io streams, encodings,
-configuring a parser, configuring an xpath processor, etc. Additionally, a lot of these things can benefit from
+configuring a parser, configuring an xpath processor, exception handling, etc. 
+
+Additionally, a lot of these things can benefit from
 reusing instances. For example, xpath expressions are more expensive to instantiate than to use and you can reuse them
 but they are not thread safe. Likewise, you can reuse DocumentBuilder instances.
 
 This library offers a handful of classes. The most important one is XPathBrowser which implements an xpath based
 mechanism to browse a dom tree much like you would browse a file system.
 
-The reason I open sourced this code is that I got tired of recreating this code for work. 
+The reason I open sourced this code is that I got tired of recreating code like this for work over and over again. I actually developed an early version of this code years ago and have been sort of copying it from project to project.
+
+h1. Features
+
+* XMLTools allow for one line calls to parse a String, Reader or InputStream. 
+** Reuses DocumentBuilder instances
+* XPathBrowser class that allows you to work with xpath expressions in a sane way
+** Supports caching of xpath expressions so you can reuse them efficiently, even across multiple threads. See known issues below.
+** Supports really compact code that does what you want/expect
+** Handles namespaces somewhat sensibly to allow for writing namespace neutral xpath expressions (see known issues below).
+* ValidXMLCharacterFilterReader that can be used to filter illegal characters from content before you parse it. This is great for dealing with content with minor encoding errors where dropping the problematic characters is a better solution than failing to parse.
+* Battle tested. I've used this code (or a predecessor of it) for several years in different projects. It's fast enough that I've used it for batch processing large amounts of xml, parsing input in rest APIs in production servers, or simply picking apart API responses in tests, custom tools, and other projects. 
 
 h1. Usage
 
@@ -35,22 +48,47 @@ You can do cool stuff like this using the builder pattern:
 <code>
 Document xml = XMLTools.parse(new FileInputStream("somefile.xml"));
 
-// can take a string, input stream, reader, or dom node, so new XPathBrowser(new FileInputStream("somefile.xml")); would work too
+// can take a string, input stream, reader, or dom node
 XPathBrowser xp = new XPathBrowser(xml);
-// There are methods for strings, ints, booleans
+
+//so this would work as well 
+xp = new XPathBrowser(new FileInputStream("somefile.xml")); 
+
+// There are methods for String, int, long, double, boolean and it is easy to add more if ever needed.
+// you can use cd to navigate the dom tree and then use relative xpath expressions against that node or just access
+// the node value directly.
 long l = xp.cd("/root/long").getLong();
-// lets work with a list
+
+// this works as well
+l = xp.getLong("/root/long");
+
+// or this way you can work with any dom node and use relative xpaths against that node
+Node n = xp.getFirstNode("/root");
+l = xp.getLong(n,"/long");
+
+// or you can do it like this
+xp.cd("/root");
+xp.getLong("/long");
+
+// you can easily iterate over node lists
 for(XPathBrowser x: xp.cd("/root/list").ls()) {
     System.out.println(x.getString();
 }
+
+// or just get the NodeList straight from the dom
+NodeList l = xp.getNodeList("/root/list");
 </code>
 </pre>
 
-The XPathBrowser class contains many more methods that allow you to pick apart the xml in a way that is reasonably performant and allows for minimum amounts of boiler plate.
+The XPathBrowser class contains many more methods that allow you to pick apart the xml in a way that is reasonably performant and allows for minimum amounts of boiler plate. Different styles of using are supported. The builder/file system way is convenient but you can mix and match different approaches.
 
 Take a look at the unit tests for an idea of what else this code can do.
 
-h1. Performance and memory considerations
+h1. Known issues
+
+These are issues that I'm aware of that I haven't yet gotten around to addressing. They haven't really blocked me in using this.
+
+h2. Performance and memory considerations
 
 The XPathBrowser caches each expression you give to it for each thread (because they are not thread safe). So, you need to be aware of the memory impact of this since the caching strategy currently used in XPathBrowser is fairly naive (i.e. a map); I intend to replace this at some point with a guava based LRU style cache and a better configurable cache policy. Until then, you need to make sure you don't leak memory by endlessly creating new xpath expressions. Normally you can sort of avoid this by only having a fixed set of expressions that you use. If however, you use variables in your expressions, things get nasty and you will basically start running out of memory. Additionally, the cache is static (i.e. global).
 
@@ -58,8 +96,14 @@ You can manually clear out the cache by calling clearCache on XPathBrowser. Don'
 
 If you take this into account, it is all good. I've used code like this in production setups and it has proven rock solid for me. But your mile age may vary of course.
 
+h2. Namespaces are a bit flaky
+
+By default, the XPathBrowser will sort of handle namespaces and it will allow you to use namespace free xpath expressions for some things against namespaced xml. However, there are cases where it doesn't work reliable. I've actually resorted to doing a string replace to get rid of namespaces on one occasion and this is a nice workaround but it comes at a slight performance penalty of course. 
+
 h1. Installation
 
-It's a maven project. So, checking it out and doing a mvn clean install should do the trick. If there is demand for it, I may eventually deploy a stable jar somewhere. If you really need this, please contact me. Meanwhile, I suggest that you excercise your rights under the license and simply copy and adapt. The "license":https://github.com/jillesvangurp/xmltools/blob/master/LICENSE allows you to do this and I have no problems with this.
+It's a maven project. So, checking it out and doing a mvn clean install should do the trick. If there is demand for it, I may eventually deploy a stable jar somewhere. If you really need this, please contact me. Meanwhile, I suggest that you exercise your rights under the license and simply copy and adapt. The "license":https://github.com/jillesvangurp/xmltools/blob/master/LICENSE allows you to do this and I have no problems with this.
 
 Should anyone like this licensed differently, please contact me.
+
+If anyone wants to fix stuff just send me a pull request.
