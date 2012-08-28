@@ -1,0 +1,10 @@
+<root>
+    <string>foo</string>
+    <double>0.42</double>
+    <long>42</long>
+    <bool>True</bool>
+    <list>
+        <item>1</item>
+        <item>2</item>
+    </list>
+</root>

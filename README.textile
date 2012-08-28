@@ -1,0 +1,65 @@
+h1. Introduction
+
+XmlTools is a small set of utility methods that make working with xml a lot less tedious in Java. Often
+picking apart xml content in Java involves a lot of boiler plate code related to handling io streams, encodings,
+configuring a parser, configuring an xpath processor, etc. Additionally, a lot of these things can benefit from
+reusing instances. For example, xpath expressions are more expensive to instantiate than to use and you can reuse them
+but they are not thread safe. Likewise, you can reuse DocumentBuilder instances.
+
+This library offers a handful of classes. The most important one is XPathBrowser which implements an xpath based
+mechanism to browse a dom tree much like you would browse a file system.
+
+The reason I open sourced this code is that I got tired of recreating this code for work. 
+
+h1. Usage
+
+Given some xml:
+
+<pre>
+<code>
+&lt;root&gt;
+    &lt;string&gt;foo&lt;/string&gt;
+    &lt;double&gt;0.42&lt;/double&gt;
+    &lt;long&gt;42&lt;/long&gt;
+    &lt;bool&gt;True&lt;/bool&gt;
+    &lt;list&gt;
+        &lt;item&gt;1&lt;/item&gt;
+        &lt;item&gt;2&lt;/item&gt;
+    &lt;/list&gt;
+&lt;/root&gt;
+</code>
+</pre>
+
+You can do cool stuff like this using the builder pattern:
+<pre>
+<code>
+Document xml = XMLTools.parse(new FileInputStream("somefile.xml"));
+
+// can take a string, input stream, reader, or dom node, so new XPathBrowser(new FileInputStream("somefile.xml")); would work too
+XPathBrowser xp = new XPathBrowser(xml);
+// There are methods for strings, ints, booleans
+long l = xp.cd("/root/long").getLong();
+// lets work with a list
+for(XPathBrowser x: xp.cd("/root/list").ls()) {
+    System.out.println(x.getString();
+}
+</code>
+</pre>
+
+The XPathBrowser class contains many more methods that allow you to pick apart the xml in a way that is reasonably performant and allows for minimum amounts of boiler plate.
+
+Take a look at the unit tests for an idea of what else this code can do.
+
+h1. Performance and memory considerations
+
+The XPathBrowser caches each expression you give to it for each thread (because they are not thread safe). So, you need to be aware of the memory impact of this since the caching strategy currently used in XPathBrowser is fairly naive (i.e. a map); I intend to replace this at some point with a guava based LRU style cache and a better configurable cache policy. Until then, you need to make sure you don't leak memory by endlessly creating new xpath expressions. Normally you can sort of avoid this by only having a fixed set of expressions that you use. If however, you use variables in your expressions, things get nasty and you will basically start running out of memory. Additionally, the cache is static (i.e. global).
+
+You can manually clear out the cache by calling clearCache on XPathBrowser. Don't call this unless you have a good reason (i.e. you know you are leaking memory) because it could destroy performance.
+
+If you take this into account, it is all good. I've used code like this in production setups and it has proven rock solid for me. But your mile age may vary of course.
+
+h1. Installation
+
+It's a maven project. So, checking it out and doing a mvn clean install should do the trick. If there is demand for it, I may eventually deploy a stable jar somewhere. If you really need this, please contact me. Meanwhile, I suggest that you excercise your rights under the license and simply copy and adapt. The "license":https://github.com/jillesvangurp/xmltools/blob/master/LICENSE allows you to do this and I have no problems with this.
+
+Should anyone like this licensed differently, please contact me.
