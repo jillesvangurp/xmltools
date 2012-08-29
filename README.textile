@@ -102,8 +102,28 @@ By default, the XPathBrowser will sort of handle namespaces and it will allow yo
 
 h1. Installation
 
-It's a maven project. So, checking it out and doing a mvn clean install should do the trick. If there is demand for it, I may eventually deploy a stable jar somewhere. If you really need this, please contact me. Meanwhile, I suggest that you exercise your rights under the license and simply copy and adapt. The "license":https://github.com/jillesvangurp/xmltools/blob/master/LICENSE allows you to do this and I have no problems with this.
+It's a maven project. So, checking it out and doing a mvn clean install should do the trick.
+
+Alternatively, you may use my github maven repository, which is where I deploy releases for some of my projects. In order to use this, you have to configure your settings.xml as explained here: https://github.com/jillesvangurp/mvnrepo
+
+Then you can add the following dependency:
+
+<pre>
+<code>
+<dependency>
+    <groupId>com.github.jillesvangurp</groupId>
+    <artifactId>xmltools</artifactId>
+    <version>1.0</version>
+</dependency>
+</code>
+</pre>
+
+Alternatively, you can exercise your rights under the license and simply copy and adapt. The "license":https://github.com/jillesvangurp/xmltools/blob/master/LICENSE allows you to do this and I have no problems with this.
 
 Should anyone like this licensed differently, please contact me.
 
 If anyone wants to fix stuff just send me a pull request.
+
+h1. Changelog
+
+* 1.0 - first release of XMLTools
