@@ -17,7 +17,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.github.jillesvangurp</groupId>
     <artifactId>xmltools</artifactId>
-    <version>1.0</version>
+    <version>1.1-SNAPSHOT</version>
 
     <name>xmltools</name>
     <description>A collection of xml related tools that I have put together over the past few years. They've served me well in picking apart xml documents without too much boilerplate.</description>
