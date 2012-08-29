@@ -7,14 +7,16 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 /**
- * This class iterates over string blobs in a stream that are clearly marked
+ * This class iterates over string blobs in a Reader that are clearly marked
  * with some begin and end token. This is useful for processing large files of
- * e.g. xml, json, or some other structured data and allows you to process the
- * blobs one by one instead of parsing the whole file, which over a certain size
+ * e.g. xml, json, or some other structured data in a streaming fashion and allows you to process the
+ * blobs one by one instead of parsing the whole file all at once, which over a certain size
  * might be very challenging.
  *
  * Basically this class is an Iterable<String>, which means you can simply use a
  * for loop to loop over the content.
+ *
+ * Note. make sure to close the reader after iterating. This class does not attempt to close the reader.
  */
 public class BlobIterable implements Iterable<String> {
 
@@ -23,6 +25,11 @@ public class BlobIterable implements Iterable<String> {
 	private final String closeTag;
 
 
+	/**
+	 * @param r reader, DO NOT forget to close the reader!
+	 * @param openTag
+	 * @param closeTag
+	 */
 	public BlobIterable(Reader r, String openTag, String closeTag) {
 		this.r = r;
 		this.openTag = openTag;
