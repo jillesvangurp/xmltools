@@ -80,9 +80,9 @@ for(XPathBrowser x: xp.cd("/root/list").ls()) {
 NodeList l = xp.getNodeList("/root/list");
 
 
-// if you have a big file with <page> .... </page> objects, you can process it like this
+// if you have a big file with &lt;page&gt; .... &lt;/page&gt; objects, you can process it like this
 // without running out of memory
-for(String page: new BlobIterable(inputStream, "<page>", "</page>") {
+for(String page: new BlobIterable(inputStream, "&lt;page&gt;", "&lt;/page&gt;") {
     xp = XPathBrowser.browse(page);
     ...
 }
