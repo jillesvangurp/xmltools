@@ -44,12 +44,12 @@ public class XPathBrowserTest {
 
     @BeforeMethod
 	public void before() throws Exception {
-        xpath = new XPathBrowser(this.getClass().getResourceAsStream("/test.xml"), "utf-8");
+        xpath = XPathBrowser.browse(this.getClass().getResourceAsStream("/test.xml"), "utf-8");
         root = xpath.getNodeList("/root").item(0);
     }
 
     public void shouldExtractFromNamespacedXml() throws SAXException, IOException, XPathExpressionException {
-        xpath = new XPathBrowser(this.getClass().getResourceAsStream("/test-with-ns.xml"), "utf-8");
+        xpath = XPathBrowser.browse(this.getClass().getResourceAsStream("/test-with-ns.xml"), "utf-8");
         AssertJUnit.assertEquals(0.42,xpath.getDouble("/root/double"));
     }
 

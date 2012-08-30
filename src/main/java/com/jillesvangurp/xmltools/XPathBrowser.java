@@ -51,29 +51,29 @@ public class XPathBrowser {
 
     private static ThreadLocal<XPathExpressionCache> threadLocalXPathCache = new XpathExpressionCacheThreadLocal();
 
-    public XPathBrowser(String xml) throws SAXException {
-    	this(XMLTools.parseXml(xml));
-    }
-
-    public XPathBrowser(Reader r) throws SAXException, IOException {
-    	this(XMLTools.parseXml(r));
-    }
-
-    public XPathBrowser(InputStream is, String encoding) throws SAXException, IOException {
-    	this(XMLTools.parseXml(is, encoding));
-    }
-
-    /**
-     * @param node
-     *        usually the document root but works for any node.
-     */
-    public XPathBrowser(final Node node) {
+    private XPathBrowser(final Node node) {
         cd(node);
         root=node;
     }
 
+    public static XPathBrowser browse(Reader r) throws SAXException, IOException {
+    	return new XPathBrowser(XMLTools.parseXml(r));
+    }
+
+    public static XPathBrowser browse(InputStream is, String encoding) throws SAXException, IOException {
+    	return new XPathBrowser(XMLTools.parseXml(is,encoding));
+    }
+
+    public static XPathBrowser browse(String xml) throws SAXException {
+    	return new XPathBrowser(XMLTools.parseXml(xml));
+    }
+
+    public static XPathBrowser browse(final Node node) {
+    	return new XPathBrowser(node);
+    }
+
     /**
-     * Efficient xpath expression evaluator that uses the {@link XPathExpressionCache}.
+     * Efficient xpath expression evaluator that uses the {@link SimpleXPathExpressionCache}.
      * Use this if none of the other methods do what you need.
      *
      * @param expr
@@ -84,7 +84,7 @@ public class XPathBrowser {
      */
     public Object eval(final String expr, final Node node, final QName resultType) throws XPathExpressionException {
         final XPathExpressionCache expressionCache = XPathBrowser.threadLocalXPathCache.get();
-        final XPathExpression xp = expressionCache.getInstance(expr);
+        final XPathExpression xp = expressionCache.getExpression(expr);
 
         return xp.evaluate(node, resultType);
     }
@@ -485,17 +485,6 @@ public class XPathBrowser {
 		public void remove() {
 			throw new UnsupportedOperationException("remove is not supported");
 		}
-	}
-
-	private static final class XpathExpressionCacheThreadLocal extends ThreadLocal<XPathExpressionCache> {
-	    /*
-	     * (non-Javadoc)
-	     * @see java.lang.ThreadLocal#initialValue()
-	     */
-	    @Override
-	    protected XPathExpressionCache initialValue() {
-	        return new XPathExpressionCache();
-	    }
 	}
 
 	public static void clearCache() {
