@@ -14,7 +14,7 @@ import java.util.NoSuchElementException;
  * might be very challenging.
  *
  * Basically this class is an Iterable<String>, which means you can simply use a
- * for loop to loop over the content.
+ * for each loop to iterate over the content.
  *
  * Note. make sure to close the reader after iterating. This class does not attempt to close the reader.
  */
@@ -23,7 +23,6 @@ public class BlobIterable implements Iterable<String> {
 	private final Reader r;
 	private final String openTag;
 	private final String closeTag;
-
 
 	/**
 	 * @param r reader, DO NOT forget to close the reader!
@@ -87,8 +86,10 @@ public class BlobIterable implements Iterable<String> {
 			}
 		}
 
-		boolean fastEndsWith(StringBuilder buf, String postFix) {
-			// String.endsWith is very slow
+		private boolean fastEndsWith(StringBuilder buf, String postFix) {
+			// String.endsWith is very slow and creating extra String objects
+			// every time we want to check the StringBuilder content is
+			// inefficient
 			if(buf.length()<postFix.length()) {
 				return false;
 			} else {
