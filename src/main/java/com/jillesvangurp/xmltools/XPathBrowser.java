@@ -73,7 +73,7 @@ public class XPathBrowser {
     }
 
     /**
-     * Efficient xpath expression evaluator that uses the {@link SimpleXPathExpressionCache}.
+     * Efficient xpath expression evaluator that uses the {@link XPathExpressionCache}.
      * Use this if none of the other methods do what you need.
      *
      * @param expr
