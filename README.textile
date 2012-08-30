@@ -22,6 +22,7 @@ h1. Features
 ** Supports really compact code that does what you want/expect
 ** Handles namespaces somewhat sensibly to allow for writing namespace neutral xpath expressions (see known issues below).
 * ValidXMLCharacterFilterReader that can be used to filter illegal characters from content before you parse it. This is great for dealing with content with minor encoding errors where dropping the problematic characters is a better solution than failing to parse.
+* BlobIteratoble class that allows you to iterate over a large file and work on blob clearly marked with a begin and end token. This is useful for e.g. processing large files such as the entire wikipedia xml file (10 GB) and processing each wikipedia entry with the XPathBrowser.
 * Battle tested. I've used this code (or a predecessor of it) for several years in different projects. It's fast enough that I've used it for batch processing large amounts of xml, parsing input in rest APIs in production servers, or simply picking apart API responses in tests, custom tools, and other projects. 
 
 h1. Usage
@@ -52,7 +53,7 @@ Document xml = XMLTools.parse(new FileInputStream("somefile.xml"));
 XPathBrowser xp = new XPathBrowser(xml);
 
 //so this would work as well 
-xp = new XPathBrowser(new FileInputStream("somefile.xml")); 
+xp = XPathBrowser.browse(new FileInputStream("somefile.xml")); 
 
 // There are methods for String, int, long, double, boolean and it is easy to add more if ever needed.
 // you can use cd to navigate the dom tree and then use relative xpath expressions against that node or just access
@@ -77,12 +78,22 @@ for(XPathBrowser x: xp.cd("/root/list").ls()) {
 
 // or just get the NodeList straight from the dom
 NodeList l = xp.getNodeList("/root/list");
+
+
+// if you have a big file with <page> .... </page> objects, you can process it like this
+// without running out of memory
+for(String page: new BlobIterable(inputStream, "<page>", "</page>") {
+    xp = XPathBrowser.browse(page);
+    ...
+}
+
 </code>
 </pre>
 
 The XPathBrowser class contains many more methods that allow you to pick apart the xml in a way that is reasonably performant and allows for minimum amounts of boiler plate. Different styles of using are supported. The builder/file system way is convenient but you can mix and match different approaches.
 
 Take a look at the unit tests for an idea of what else this code can do.
+
 
 h1. Known issues
 
