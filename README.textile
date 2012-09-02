@@ -47,15 +47,11 @@ Given some xml:
 You can do cool stuff like this using the builder pattern:
 <pre>
 <code>
-Document xml = XMLTools.parse(new FileInputStream("somefile.xml"));
-
+// Browse an xml document using the XPathBrowser
 // can take a string, input stream, reader, or dom node
-XPathBrowser xp = new XPathBrowser(xml);
+XPathBrowser xp = XPathBrowser.browse(xml);
 
-//so this would work as well 
-xp = XPathBrowser.browse(new FileInputStream("somefile.xml")); 
-
-// There are methods for String, int, long, double, boolean and it is easy to add more if ever needed.
+// There are methods for extracting String, int, long, double, boolean and it is easy to add more if ever needed.
 // you can use cd to navigate the dom tree and then use relative xpath expressions against that node or just access
 // the node value directly.
 long l = xp.cd("/root/long").getLong();
