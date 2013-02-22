@@ -41,9 +41,9 @@
     </licenses>
 
     <scm>
-        <url>git://github.com/jillesvangurp/xmltools.git</url>
+        <url>git@github.com:jillesvangurp/xmltools.git</url>
         <connection>scm:git:git@github.com:jillesvangurp/xmltools.git</connection>
-        <developerConnection>scm:git:git://github.com/jillesvangurp/xmltools.git</developerConnection>
+        <developerConnection>scm:git:git@github.com:jillesvangurp/xmltools.git</developerConnection>
     </scm>
 
 	<distributionManagement>
