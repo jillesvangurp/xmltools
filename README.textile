@@ -2,7 +2,7 @@ h1. Introduction
 
 XmlTools is a small set of utility methods that make working with xml a lot less tedious in Java. Often
 picking apart xml content in Java involves a lot of boiler plate code related to handling io streams, encodings,
-configuring a parser, configuring an xpath processor, exception handling, etc. 
+configuring a parser, configuring an xpath processor, exception handling, etc.
 
 Additionally, a lot of these things can benefit from
 reusing instances. For example, xpath expressions are more expensive to instantiate than to use and you can reuse them
@@ -15,7 +15,7 @@ The reason I open sourced this code is that I got tired of recreating code like 
 
 h1. Features
 
-* XMLTools allow for one line calls to parse a String, Reader or InputStream. 
+* XMLTools allow for one line calls to parse a String, Reader or InputStream.
 ** Reuses DocumentBuilder instances
 * XPathBrowser class that allows you to work with xpath expressions in a sane way
 ** Supports caching of xpath expressions so you can reuse them efficiently. The cache is a LRU cache that will evict least recently used entries additionally entries that are not used for a while will be removed as well. See known issues below.
@@ -23,7 +23,7 @@ h1. Features
 ** Handles namespaces somewhat sensibly to allow for writing namespace neutral xpath expressions (see known issues below).
 * ValidXMLCharacterFilterReader that can be used to filter illegal characters from content before you parse it. This is great for dealing with content with minor encoding errors where dropping the problematic characters is a better solution than failing to parse.
 * BlobIteratoble class that allows you to iterate over a large file and work on blob clearly marked with a begin and end token. This is useful for e.g. processing large files such as the entire wikipedia xml file (10 GB) and processing each wikipedia entry with the XPathBrowser.
-* Battle tested. I've used this code (or a predecessor of it) for several years in different projects. It's fast enough that I've used it for batch processing large amounts of xml, parsing input in rest APIs in production servers, or simply picking apart API responses in tests, custom tools, and other projects. 
+* Battle tested. I've used this code (or a predecessor of it) for several years in different projects. It's fast enough that I've used it for batch processing large amounts of xml, parsing input in rest APIs in production servers, or simply picking apart API responses in tests, custom tools, and other projects.
 
 h1. Usage
 
@@ -97,11 +97,11 @@ These are issues that I'm aware of that I haven't yet gotten around to addressin
 
 h2. XPath expression Caching
 
-XPathExpressions are much more expensive to create than to use and there is considerable benefit to reusing the instances. However, they are not thread safe and you should be careful to not use them concurrently. To make this easy, the XPathBrowser uses a thread local with a per thread LRU cache for xpath expressions. This can put quite a bit of strain on the memory and you need to trade off memory usage and performance here if you choose to tune the defaults this library uses. By default, the cache will keep a modest amount of expressions in the cache evicting them based on the least recently used mechanism or after 15 minutes of not being used. In a system with many threads, the amount of cached expressions can accumulate and you need to be careful in that case. 
+XPathExpressions are much more expensive to create than to use and there is considerable benefit to reusing the instances. However, they are not thread safe and you should be careful to not use them concurrently. To make this easy, the XPathBrowser uses a thread local with a per thread LRU cache for xpath expressions. This can put quite a bit of strain on the memory and you need to trade off memory usage and performance here if you choose to tune the defaults this library uses. By default, the cache will keep a modest amount of expressions in the cache evicting them based on the least recently used mechanism or after 15 minutes of not being used. In a system with many threads, the amount of cached expressions can accumulate and you need to be careful in that case.
 
 h2. Namespaces are a bit flaky
 
-By default, the XPathBrowser will sort of handle namespaces and it will allow you to use namespace free xpath expressions for some things against namespaced xml. However, there are cases where it doesn't work reliable. I've actually resorted to doing a string replace to get rid of namespaces on one occasion and this is a nice workaround but it comes at a slight performance penalty of course. 
+By default, the XPathBrowser will sort of handle namespaces and it will allow you to use namespace free xpath expressions for some things against namespaced xml. However, there are cases where it doesn't work reliable. I've actually resorted to doing a string replace to get rid of namespaces on one occasion and this is a nice workaround but it comes at a slight performance penalty of course.
 
 h1. Installation
 
@@ -117,8 +117,10 @@ If anyone wants to fix stuff just send me a pull request.
 
 h1. Changelog
 
+* 1.3
+** First maven central release; refactored to have io.inbot package
 * 1.2
-** Mostly documentation fixes 
+** Mostly documentation fixes
 * 1.1
 ** Added BlobIterable, replaced the caching for xpath expressions with a guava based LRU cache
 * 1.0
