@@ -23,7 +23,7 @@
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>com.github.jillesvangurp</groupId>
+    <groupId>io.inbot</groupId>
     <artifactId>xmltools</artifactId>
     <version>1.3-SNAPSHOT</version>
 
@@ -75,19 +75,15 @@
 
     <developers>
         <developer>
-            <id>jillesvangurp</id>
             <name>Jilles van Gurp</name>
-            <url>http://www.jillesvangurp.com</url>
-            <timezone>gmt+1</timezone>
-            <roles>
-                <role>Main Developer</role>
-            </roles>
+            <organization>Inbot</organization>
+            <organizationUrl>http://inbot.io</organizationUrl>
         </developer>
     </developers>
 
     <organization>
-        <name>www.jillesvangurp.com</name>
-        <url>http://jillesvangurp.com</url>
+        <name>Inbot</name>
+        <url>http://inbot.io</url>
     </organization>
 
     <properties>

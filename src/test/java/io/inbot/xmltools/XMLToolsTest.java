@@ -19,18 +19,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.jillesvangurp.xmltools;
+package io.inbot.xmltools;
 
-/**
- * This thread local ensures that each thread has its own cache for caching xpath expressions.
- */
-class XpathExpressionCacheThreadLocal extends ThreadLocal<XPathExpressionCache> {
-    /*
-     * (non-Javadoc)
-     * @see java.lang.ThreadLocal#initialValue()
-     */
-    @Override
-    protected XPathExpressionCache initialValue() {
-    	return new XPathExpressionCache(1000, 15);
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.Reader;
+
+import javax.xml.parsers.ParserConfigurationException;
+
+import org.testng.annotations.Test;
+import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
+
+@Test
+public class XMLToolsTest {
+
+    public void shouldParseFile() throws SAXException, IOException {
+        final Reader inputStream = new FileReader("src/test/resources/test.xml");
+        XMLTools.parseXml(inputStream);
+    }
+
+    public void shouldParseString() throws SAXException {
+    	XMLTools.parseXml("<xml />");
+    }
+
+    @Test(expectedExceptions = SAXParseException.class)
+    public void shouldNotParseInvalidXml() throws ParserConfigurationException, SAXException, IOException {
+        XMLTools.parseXml("<noxml>");
     }
 }

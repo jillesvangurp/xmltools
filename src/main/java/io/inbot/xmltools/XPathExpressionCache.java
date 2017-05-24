@@ -19,7 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.jillesvangurp.xmltools;
+package io.inbot.xmltools;
 
 import java.util.Iterator;
 import java.util.concurrent.Callable;
