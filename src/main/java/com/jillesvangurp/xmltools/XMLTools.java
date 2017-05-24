@@ -70,42 +70,16 @@ public class XMLTools {
     private XMLTools() {
     }
 
-    /**
-     * Given a Reader, return the parsed Document.
-     *
-     * @param r
-     * @return the parsed Document
-     * @throws SAXException
-     * @throws IOException
-     */
     public static Document parseXml(final Reader r) throws SAXException, IOException {
         final InputSource inputSource = new InputSource(r);
         return XMLTools.parse(inputSource);
     }
 
-    /**
-	 * Given an InputStream, return the parsed Document.
-	 *
-	 * @param inputStream
-	 * @param encoding
-	 *        character encoding of the stream
-	 * @return the parsed Document
-	 * @throws SAXException
-	 * @throws IOException
-	 */
 	public static Document parseXml(final InputStream inputStream, final String encoding)
 	        throws SAXException, IOException {
 	    return parseXml(new BufferedReader(new InputStreamReader(inputStream, encoding)));
 	}
 
-	/**
-     * Parse a string.
-     *
-     * @param xmlBuffer
-     * @return Document root.
-     * @throws SAXException
-     * @throws IOException
-     */
     public static Document parseXml(final String xmlBuffer) throws SAXException {
         try {
 			return XMLTools.parseXml(new ByteArrayInputStream(xmlBuffer.getBytes("UTF-8")), "UTF-8");

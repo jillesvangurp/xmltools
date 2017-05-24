@@ -34,7 +34,7 @@ public class ValidXMLCharacterFilterReader extends FilterReader {
     /**
      * Create a new {@link ValidXMLCharacterFilterReader}.
      *
-     * @param in
+     * @param in reader
      */
     public ValidXMLCharacterFilterReader(final Reader in) {
         super(in);
