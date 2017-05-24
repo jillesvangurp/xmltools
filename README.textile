@@ -13,6 +13,16 @@ mechanism to browse a dom tree much like you would browse a file system.
 
 The reason I open sourced this code is that I got tired of recreating code like this for work over and over again. I actually developed an early version of this code years ago and have been sort of copying it from project to project.
 
+h1. Get JsonJ from Maven Central
+
+<pre>
+<dependency>
+    <groupId>io.inbot</groupId>
+    <artifactId>xmltools</artifactId>
+    <version>1.3</version>
+</dependency>
+</pre>
+
 h1. Features
 
 * XMLTools allow for one line calls to parse a String, Reader or InputStream.
