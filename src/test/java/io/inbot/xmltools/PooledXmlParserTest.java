@@ -21,16 +21,36 @@
  */
 package io.inbot.xmltools;
 
-/**
- * This thread local ensures that each thread has its own cache for caching xpath expressions.
- */
-class XpathExpressionCacheThreadLocal extends ThreadLocal<XPathExpressionCache> {
-    /*
-     * (non-Javadoc)
-     * @see java.lang.ThreadLocal#initialValue()
-     */
-    @Override
-    protected XPathExpressionCache initialValue() {
-    	return new XPathExpressionCache(1000, 15);
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.Reader;
+import javax.xml.parsers.ParserConfigurationException;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
+
+@Test
+public class PooledXmlParserTest {
+
+    private PooledXmlParser pooledXmlParser;
+
+    @BeforeMethod
+    public void before() {
+        pooledXmlParser = new PooledXmlParser(20,20);
+    }
+
+    public void shouldParseFile() throws SAXException, IOException {
+        final Reader inputStream = new FileReader("src/test/resources/test.xml");
+        pooledXmlParser.parseXml(inputStream);
+    }
+
+    public void shouldParseString() throws SAXException {
+        pooledXmlParser.parseXml("<xml />");
+    }
+
+    @Test(expectedExceptions = SAXParseException.class)
+    public void shouldNotParseInvalidXml() throws ParserConfigurationException, SAXException, IOException {
+        pooledXmlParser.parseXml("<noxml>");
     }
 }

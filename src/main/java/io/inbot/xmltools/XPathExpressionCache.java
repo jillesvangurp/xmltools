@@ -21,30 +21,50 @@
  */
 package io.inbot.xmltools;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import java.util.Iterator;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-
-
+/**
+ * Per thread caching of xpath expressions. Compiling expressions is way more expensive than reusing them. Unfortunately, they are
+ * not thread safe. So this class provides a per thread cache of XPathExpression. The thread cache uses the thread ids for storing the
+ * per thread expresssion cache. Each expression is stored with the uncompiled string as its key.
+ *
+ */
 public class XPathExpressionCache {
 
-	private final Cache<String, XPathExpression> cache;
+	private final LoadingCache<Long,Cache<String, XPathExpression>> perThreadCaches;
 
     private final XPath xpath;
 
-	public XPathExpressionCache(int cacheSize, int evictionOfUnusedInMinutes) {
-		cache = CacheBuilder.newBuilder().concurrencyLevel(1).maximumSize(cacheSize).expireAfterAccess(evictionOfUnusedInMinutes, TimeUnit.MINUTES).build();
-		final XPathFactory xpf = XPathFactory.newInstance();
+	public XPathExpressionCache(int threadCacheSize, int threadCacheExpireMinutes, final int cacheSize, final int evictionOfUnusedInMinutes) {
+	    // return a cache of caches
+	    perThreadCaches=CacheBuilder.newBuilder()
+	        .maximumSize(threadCacheSize)
+            .expireAfterAccess(threadCacheExpireMinutes, TimeUnit.MINUTES)
+	        .build(new CacheLoader<Long, Cache<String, XPathExpression>>() {
+
+                @Override
+                public Cache<String, XPathExpression> load(Long id) throws Exception {
+                    return CacheBuilder.newBuilder()
+                        .maximumSize(cacheSize)
+                        .expireAfterAccess(evictionOfUnusedInMinutes, TimeUnit.MINUTES)
+                        .<String, XPathExpression>build();
+                }
+            }
+	        );
+
+	       final XPathFactory xpf = XPathFactory.newInstance();
+
         xpath = xpf.newXPath();
         xpath.setNamespaceContext(new NamespaceContext() {
 
@@ -71,12 +91,7 @@ public class XPathExpressionCache {
 
 	public XPathExpression getExpression(final String expression) throws XPathExpressionException {
         try {
-			return cache.get(expression, new Callable<XPathExpression>() {
-				@Override
-				public XPathExpression call() throws Exception {
-					return xpath.compile(expression);
-				}
-			});
+            return perThreadCaches.get(Thread.currentThread().getId()).get(expression, () ->xpath.compile(expression));
 		} catch (ExecutionException e) {
 			if(e.getCause() instanceof XPathExpressionException) {
 				throw (XPathExpressionException)e.getCause();

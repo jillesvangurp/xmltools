@@ -21,55 +21,32 @@
  */
 package io.inbot.xmltools;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Reader;
 import java.util.Iterator;
-
 import javax.xml.namespace.QName;
 import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
-
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
 
 /**
- * Various utility methods to make traversing an xml document using xpath expressions easy. This class is just syntactic
- * sugar. Part of the sugar is not having to pass xpath and node objects all the time. Another part is the use of some
- * performance enhancing tricks such as caching compiled xpath expressions using a thread local, which helps if you use
- * the same expressions over and over again. Warning, this is actively leaking memory otherwise!
+ * Simple file system abstraction over XML documents that allows you to browse the XML document using xpath expressions.
+ *
+ *
+ * It's reuses xpath expressions using the {@link XPathExpressionCache}. This is a lot faster than recompiling the expressions every time.
+ *
+ * Note, you should use the XPathBrowserFactory for creating instances.
  *
  * Note, this class does not support namespaces currently. TODO: check here for potential solution
  * http://blog.davber.com/2006/09/17/xpath-with-namespaces-in-java/
  */
 public class XPathBrowser {
 
-    private final Node root;
-    private Node currentNode;
+    private final Node currentNode;
+    private final XPathExpressionCache expressionCache;
 
-    private static ThreadLocal<XPathExpressionCache> threadLocalXPathCache = new XpathExpressionCacheThreadLocal();
-
-    private XPathBrowser(final Node node) {
-        cd(node);
-        root=node;
-    }
-
-    public static XPathBrowser browse(Reader r) throws SAXException, IOException {
-    	return new XPathBrowser(XMLTools.parseXml(r));
-    }
-
-    public static XPathBrowser browse(InputStream is, String encoding) throws SAXException, IOException {
-    	return new XPathBrowser(XMLTools.parseXml(is,encoding));
-    }
-
-    public static XPathBrowser browse(String xml) throws SAXException {
-    	return new XPathBrowser(XMLTools.parseXml(xml));
-    }
-
-    public static XPathBrowser browse(final Node node) {
-    	return new XPathBrowser(node);
+    XPathBrowser(XPathExpressionCache expressionCache, Node node) {
+        this.expressionCache = expressionCache;
+        currentNode=node;
     }
 
     /**
@@ -83,10 +60,7 @@ public class XPathBrowser {
      * @throws XPathExpressionException if xpath incorrect
      */
     public Object eval(final String expr, final Node node, final QName resultType) throws XPathExpressionException {
-        final XPathExpressionCache expressionCache = XPathBrowser.threadLocalXPathCache.get();
-        final XPathExpression xp = expressionCache.getExpression(expr);
-
-        return xp.evaluate(node, resultType);
+        return expressionCache.getExpression(expr).evaluate(node, resultType);
     }
 
     /**
@@ -386,59 +360,57 @@ public class XPathBrowser {
 	    return currentNode;
 	}
 
-	/**
-	 * @return the node with which this {@link XPathBrowser} was initialized.
-	 */
-	public Node root() {
-		return root;
-	}
+//	/**
+//	 * @return the node with which this {@link XPathBrowser} was initialized.
+//	 */
+//	public Node root() {
+//		return root;
+//	}
 
-	/**
-     * Change the current node back to the root with which this browser was initialized.
-	 * @return the root node
-     */
-    public XPathBrowser cd() {
-    	return cd(root());
+//	/**
+//     * Change the current node back to the root with which this browser was initialized.
+//	 * @return the root node
+//     */
+//    public XPathBrowser cd() {
+//    	return cd(root());
+//    }
+
+    public XPathBrowser browse(final Node node) {
+        return new XPathBrowser(expressionCache, node);
     }
 
-    /**
-     * Change the current node to a different node. Useful if you want to work on part of the tree without having to specify absolute expressions.
-     * @param node node
-     * @return node
-     */
-    public XPathBrowser cd(final Node node) {
-        currentNode = node;
-        return this;
+//    /**
+//     * Change the current node to a the first node matching the expression.
+//     * @param expression expression
+//     * @return the node that matched
+//	 * @throws XPathExpressionException if xpath incorrect
+//	 * @throws IllegalArgumentException if the node does not exist
+//     */
+//    public XPathBrowser cd(String expression) throws XPathExpressionException {
+//    	return cd(getFirstNode(expression));
+//    }
+//
+//    /**
+//     * Change the current node to a the first node matching the expression.
+//     * @param n node
+//     * @param expression expression
+//     * @return the node that matched
+//	 * @throws XPathExpressionException if xpath incorrect
+//	 * @throws IllegalArgumentException if the node does not exist
+//     */
+//    public XPathBrowser cd(Node n, String expression) throws XPathExpressionException {
+//    	return cd(getFirstNode(n, expression));
+//    }
+
+    public XPathBrowser browseFirst(String expression) throws XPathExpressionException {
+        return new XPathBrowser(expressionCache, getFirstNode(expression));
     }
 
-    /**
-     * Change the current node to a the first node matching the expression.
-     * @param expression expression
-     * @return the node that matched
-	 * @throws XPathExpressionException if xpath incorrect
-	 * @throws IllegalArgumentException if the node does not exist
-     */
-    public XPathBrowser cd(String expression) throws XPathExpressionException {
-    	return cd(getFirstNode(expression));
+    public Iterable<XPathBrowser> browseSubNodes() throws XPathExpressionException {
+    	return browseMatching("./*");
     }
 
-    /**
-     * Change the current node to a the first node matching the expression.
-     * @param n node
-     * @param expression expression
-     * @return the node that matched
-	 * @throws XPathExpressionException if xpath incorrect
-	 * @throws IllegalArgumentException if the node does not exist
-     */
-    public XPathBrowser cd(Node n, String expression) throws XPathExpressionException {
-    	return cd(getFirstNode(n, expression));
-    }
-
-    public Iterable<XPathBrowser> ls() throws XPathExpressionException {
-    	return ls("./*");
-    }
-
-    public Iterable<XPathBrowser> ls(final String expr) throws XPathExpressionException {
+    public Iterable<XPathBrowser> browseMatching(final String expr) throws XPathExpressionException {
     	final NodeList nodeList = getNodeList(currentNode(), expr);
     	final XPathBrowser parent = this;
     	return new Iterable<XPathBrowser>() {
@@ -450,7 +422,7 @@ public class XPathBrowser {
 		};
     }
 
-    public Iterator<XPathBrowser> ls(final Node n, final String expr) throws XPathExpressionException {
+    public Iterator<XPathBrowser> browseMatching(final Node n, final String expr) throws XPathExpressionException {
     	NodeList nodeList = getNodeList(n, expr);
     	return new NodeIterator(nodeList, this);
     }
@@ -458,36 +430,26 @@ public class XPathBrowser {
 	private final class NodeIterator implements Iterator<XPathBrowser> {
 		private final NodeList nodeList;
 		int i=0;
-		Node originalNode = currentNode();
-		XPathBrowser browser;
 
 		private NodeIterator(NodeList nodeList, XPathBrowser browser) {
 			this.nodeList = nodeList;
-			this.browser = browser;
 		}
 
 		@Override
 		public boolean hasNext() {
 			boolean hasNext = i<nodeList.getLength();
-			if(!hasNext) {
-				cd(originalNode);
-			}
+
 			return hasNext;
 		}
 
 		@Override
 		public XPathBrowser next() {
-			cd(nodeList.item(i++));
-			return browser;
+		    return new XPathBrowser(expressionCache, nodeList.item(i++));
 		}
 
 		@Override
 		public void remove() {
 			throw new UnsupportedOperationException("remove is not supported");
 		}
-	}
-
-	public static void clearCache() {
-		threadLocalXPathCache = new XpathExpressionCacheThreadLocal();
 	}
 }
