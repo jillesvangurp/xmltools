@@ -21,6 +21,7 @@
  */
 package io.inbot.xmltools;
 
+import io.inbot.xmltools.exceptions.RethrownException;
 import java.util.Iterator;
 import javax.xml.namespace.QName;
 import javax.xml.xpath.XPathConstants;
@@ -57,10 +58,13 @@ public class XPathBrowser {
      * @param node node
      * @param resultType type
      * @return DOM object of the specified type or null.
-     * @throws XPathExpressionException if xpath incorrect
      */
-    public Object eval(final String expr, final Node node, final QName resultType) throws XPathExpressionException {
-        return expressionCache.getExpression(expr).evaluate(node, resultType);
+    public Object eval(final String expr, final Node node, final QName resultType) {
+        try {
+            return expressionCache.getExpression(expr).evaluate(node, resultType);
+        } catch (XPathExpressionException e) {
+            throw RethrownException.rethrow(e);
+        }
     }
 
     /**
@@ -71,9 +75,8 @@ public class XPathBrowser {
      * @param expr
      *        xpath expression.
      * @return result of the expression.
-	 * @throws XPathExpressionException if xpath incorrect
      */
-    public boolean getBoolean(final Node n, final String expr) throws XPathExpressionException {
+    public boolean getBoolean(final Node n, final String expr) {
         final String s = getString(n, expr);
         return Boolean.parseBoolean(s);
     }
@@ -84,9 +87,8 @@ public class XPathBrowser {
      * @param expr
      *        xpath expression.
      * @return result of the expression.
-	 * @throws XPathExpressionException if xpath incorrect
      */
-    public boolean getBoolean(final String expr) throws XPathExpressionException {
+    public boolean getBoolean(final String expr) {
         return getBoolean(currentNode(), expr);
     }
 
@@ -94,11 +96,7 @@ public class XPathBrowser {
      * @return current node as a boolean
      */
     public boolean getBoolean() {
-    	try {
-			return getBoolean(".");
-		} catch (XPathExpressionException e) {
-			throw new IllegalStateException(". is a valid xpath expression", e);
-		}
+		return getBoolean(".");
     }
 
 
@@ -110,9 +108,8 @@ public class XPathBrowser {
      * @param expr
      *        xpath expression.
      * @return result of the expression.
-	 * @throws XPathExpressionException if xpath incorrect
      */
-    public double getDouble(final Node n, final String expr) throws XPathExpressionException {
+    public double getDouble(final Node n, final String expr) {
         final String s = getString(n, expr);
         return Double.parseDouble(s);
     }
@@ -123,9 +120,8 @@ public class XPathBrowser {
      * @param expr
      *        xpath expression.
      * @return result of the expression.
-	 * @throws XPathExpressionException if xpath incorrect
      */
-    public double getDouble(final String expr) throws XPathExpressionException {
+    public double getDouble(final String expr) {
         return getDouble(currentNode(), expr);
     }
 
@@ -133,11 +129,7 @@ public class XPathBrowser {
      * @return current node as a double.
      */
     public double getDouble() {
-    	try {
-			return getDouble(".");
-		} catch (XPathExpressionException e) {
-			throw new IllegalStateException(". is a valid xpath expression", e);
-		}
+		return getDouble(".");
     }
 
 
@@ -149,9 +141,8 @@ public class XPathBrowser {
      * @param expr
      *        xpath expression.
      * @return result of the expression.
-	 * @throws XPathExpressionException if xpath incorrect
      */
-    public int getInt(final Node n, final String expr) throws XPathExpressionException {
+    public int getInt(final Node n, final String expr) {
         final String s = getString(n, expr);
         return Integer.parseInt(s);
     }
@@ -162,9 +153,8 @@ public class XPathBrowser {
      * @param expr
      *        xpath expression.
      * @return result of the expression.
-	 * @throws XPathExpressionException if xpath incorrect
      */
-    public int getInt(final String expr) throws XPathExpressionException {
+    public int getInt(final String expr) {
         return getInt(currentNode(), expr);
     }
 
@@ -172,11 +162,7 @@ public class XPathBrowser {
      * @return current node as an int
      */
     public int getInt() {
-        try {
-			return getInt(".");
-		} catch (XPathExpressionException e) {
-			throw new IllegalStateException(". is a valid xpath expression", e);
-		}
+		return getInt(".");
     }
 
 
@@ -188,9 +174,8 @@ public class XPathBrowser {
      * @param expr
      *        xpath expression.
      * @return result of the expression.
-	 * @throws XPathExpressionException if xpath incorrect
      */
-    public long getLong(final Node n, final String expr) throws XPathExpressionException {
+    public long getLong(final Node n, final String expr) {
         final String s = getString(n, expr);
         return Long.parseLong(s);
     }
@@ -201,9 +186,8 @@ public class XPathBrowser {
      * @param expr
      *        xpath expression.
      * @return result of the expression.
-	 * @throws XPathExpressionException if xpath incorrect
      */
-    public long getLong(final String expr) throws XPathExpressionException {
+    public long getLong(final String expr) {
         return getLong(currentNode(), expr);
     }
 
@@ -211,11 +195,7 @@ public class XPathBrowser {
      * @return current node as a long
      */
     public long getLong() {
-        try {
-			return getLong(".");
-		} catch (XPathExpressionException e) {
-			throw new IllegalStateException(". is a valid xpath expression", e);
-		}
+		return getLong(".");
     }
 
     /**
@@ -226,9 +206,8 @@ public class XPathBrowser {
      * @param expr
      *        xpath expression.
      * @return result of the expression.
-	 * @throws XPathExpressionException if xpath incorrect
      */
-    public String getString(final Node n, final String expr) throws XPathExpressionException {
+    public String getString(final Node n, final String expr) {
         return ((String) eval(expr, n, XPathConstants.STRING)).trim();
     }
 
@@ -238,9 +217,8 @@ public class XPathBrowser {
      * @param expr
      *        xpath expression.
      * @return result of the expression.
-	 * @throws XPathExpressionException if xpath incorrect
      */
-    public String getString(final String expr) throws XPathExpressionException {
+    public String getString(final String expr) {
         return ((String) eval(expr, currentNode(), XPathConstants.STRING)).trim();
     }
 
@@ -248,21 +226,16 @@ public class XPathBrowser {
      * @return current node as a String
      */
     public String getString() {
-        try {
-			return getString(".");
-		} catch (XPathExpressionException e) {
-			throw new IllegalStateException(". is a valid xpath expression", e);
-		}
+		return getString(".");
     }
 
 
     /**
 	 * @param expr expression
 	 * @return the first node that matches the expression
-	 * @throws XPathExpressionException if xpath incorrect
 	 * @throws IllegalArgumentException if the node does not exist
 	 */
-	public Node getFirstNode(String expr) throws XPathExpressionException {
+	public Node getFirstNode(String expr) {
 		return getFirstNode(currentNode(), expr);
 	}
 
@@ -270,10 +243,9 @@ public class XPathBrowser {
 	 * @param n node
 	 * @param expr expression
 	 * @return the first node that matches the expression
-	 * @throws XPathExpressionException if xpath incorrect
 	 * @throws IllegalArgumentException if the node does not exist
 	 */
-	public Node getFirstNode(Node n, String expr) throws XPathExpressionException {
+	public Node getFirstNode(Node n, String expr) {
 		NodeList nodeList = getNodeList(n, expr);
 		if(nodeList.getLength() == 0) {
 			throw new IllegalArgumentException("no such node " + expr);
@@ -290,9 +262,8 @@ public class XPathBrowser {
 	 * @param expr
 	 *        expr xpath expression.
 	 * @return a list of Nodes matching the expression.
-	 * @throws XPathExpressionException if xpath incorrect
 	 */
-	public NodeList getNodeList(final Node n, final String expr) throws XPathExpressionException {
+	public NodeList getNodeList(final Node n, final String expr) {
 	    return (NodeList) eval(expr, n, XPathConstants.NODESET);
 	}
 
@@ -302,9 +273,8 @@ public class XPathBrowser {
 	 * @param expr
 	 *        xpath expression.
 	 * @return a list of nodes matching the expression
-	 * @throws XPathExpressionException if xpath incorrect
 	 */
-	public NodeList getNodeList(final String expr) throws XPathExpressionException {
+	public NodeList getNodeList(final String expr) {
 	    return (NodeList) eval(expr, currentNode(), XPathConstants.NODESET);
 	}
 
@@ -316,9 +286,8 @@ public class XPathBrowser {
      * @param expr
      *        xpath expression.
      * @return array with matching values
-	 * @throws XPathExpressionException if xpath incorrect
      */
-    public String[] getStringValues(final Node n, final String expr) throws XPathExpressionException {
+    public String[] getStringValues(final Node n, final String expr) {
         final NodeList nodes = getNodeList(n, expr);
         final String[] values = new String[nodes.getLength()];
         for (int i = 0; i < nodes.getLength(); i++) {
@@ -334,9 +303,8 @@ public class XPathBrowser {
      * @param expr
      *        xpath expression.
      * @return array with matching values
-	 * @throws XPathExpressionException if xpath incorrect
      */
-    public String[] getStringValues(final String expr) throws XPathExpressionException {
+    public String[] getStringValues(final String expr) {
         return getStringValues(currentNode(), expr);
     }
 
@@ -346,9 +314,8 @@ public class XPathBrowser {
      * @param parent parent node
      * @param name name
      * @return a Node instance
-	 * @throws XPathExpressionException if xpath incorrect
      */
-    public Node getSubNode(final Node parent, final String name) throws XPathExpressionException {
+    public Node getSubNode(final Node parent, final String name) {
         final Node node = (Node) eval(name, parent, XPathConstants.NODE);
         return node;
     }
@@ -360,57 +327,19 @@ public class XPathBrowser {
 	    return currentNode;
 	}
 
-//	/**
-//	 * @return the node with which this {@link XPathBrowser} was initialized.
-//	 */
-//	public Node root() {
-//		return root;
-//	}
-
-//	/**
-//     * Change the current node back to the root with which this browser was initialized.
-//	 * @return the root node
-//     */
-//    public XPathBrowser cd() {
-//    	return cd(root());
-//    }
-
     public XPathBrowser browse(final Node node) {
         return new XPathBrowser(expressionCache, node);
     }
 
-//    /**
-//     * Change the current node to a the first node matching the expression.
-//     * @param expression expression
-//     * @return the node that matched
-//	 * @throws XPathExpressionException if xpath incorrect
-//	 * @throws IllegalArgumentException if the node does not exist
-//     */
-//    public XPathBrowser cd(String expression) throws XPathExpressionException {
-//    	return cd(getFirstNode(expression));
-//    }
-//
-//    /**
-//     * Change the current node to a the first node matching the expression.
-//     * @param n node
-//     * @param expression expression
-//     * @return the node that matched
-//	 * @throws XPathExpressionException if xpath incorrect
-//	 * @throws IllegalArgumentException if the node does not exist
-//     */
-//    public XPathBrowser cd(Node n, String expression) throws XPathExpressionException {
-//    	return cd(getFirstNode(n, expression));
-//    }
-
-    public XPathBrowser browseFirst(String expression) throws XPathExpressionException {
+    public XPathBrowser browseFirst(String expression) {
         return new XPathBrowser(expressionCache, getFirstNode(expression));
     }
 
-    public Iterable<XPathBrowser> browseSubNodes() throws XPathExpressionException {
+    public Iterable<XPathBrowser> browseSubNodes() {
     	return browseMatching("./*");
     }
 
-    public Iterable<XPathBrowser> browseMatching(final String expr) throws XPathExpressionException {
+    public Iterable<XPathBrowser> browseMatching(final String expr) {
     	final NodeList nodeList = getNodeList(currentNode(), expr);
     	final XPathBrowser parent = this;
     	return new Iterable<XPathBrowser>() {
@@ -422,7 +351,7 @@ public class XPathBrowser {
 		};
     }
 
-    public Iterator<XPathBrowser> browseMatching(final Node n, final String expr) throws XPathExpressionException {
+    public Iterator<XPathBrowser> browseMatching(final Node n, final String expr) {
     	NodeList nodeList = getNodeList(n, expr);
     	return new NodeIterator(nodeList, this);
     }

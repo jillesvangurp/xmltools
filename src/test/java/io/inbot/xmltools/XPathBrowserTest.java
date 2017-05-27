@@ -26,6 +26,7 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import javax.xml.xpath.XPathExpressionException;
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeMethod;
@@ -46,12 +47,12 @@ public class XPathBrowserTest {
 	public void before() throws Exception {
         xpbf = new XpathBrowserFactory(new PooledXmlParser(20, 20), new XPathExpressionCache(20,10000, 1000, 20));
 
-        xpath = xpbf.browse(this.getClass().getResourceAsStream("/test.xml"), "utf-8");
+        xpath = xpbf.browse(this.getClass().getResourceAsStream("/test.xml"), StandardCharsets.UTF_8);
         root = xpath.getNodeList("/root").item(0);
     }
 
     public void shouldExtractFromNamespacedXml() throws SAXException, IOException, XPathExpressionException {
-        xpath = xpbf.browse(this.getClass().getResourceAsStream("/test-with-ns.xml"), "utf-8");
+        xpath = xpbf.browse(this.getClass().getResourceAsStream("/test-with-ns.xml"), StandardCharsets.UTF_8);
         AssertJUnit.assertEquals(0.42,xpath.getDouble("/root/double"));
     }
 

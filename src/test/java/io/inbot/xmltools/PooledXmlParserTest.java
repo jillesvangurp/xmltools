@@ -21,14 +21,12 @@
  */
 package io.inbot.xmltools;
 
+import io.inbot.xmltools.exceptions.RethrownException;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.IOException;
 import java.io.Reader;
-import javax.xml.parsers.ParserConfigurationException;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-import org.xml.sax.SAXException;
-import org.xml.sax.SAXParseException;
 
 @Test
 public class PooledXmlParserTest {
@@ -40,17 +38,17 @@ public class PooledXmlParserTest {
         pooledXmlParser = new PooledXmlParser(20,20);
     }
 
-    public void shouldParseFile() throws SAXException, IOException {
+    public void shouldParseFile() throws FileNotFoundException {
         final Reader inputStream = new FileReader("src/test/resources/test.xml");
         pooledXmlParser.parseXml(inputStream);
     }
 
-    public void shouldParseString() throws SAXException {
+    public void shouldParseString() {
         pooledXmlParser.parseXml("<xml />");
     }
 
-    @Test(expectedExceptions = SAXParseException.class)
-    public void shouldNotParseInvalidXml() throws ParserConfigurationException, SAXException, IOException {
+    @Test(expectedExceptions = RethrownException.class)
+    public void shouldNotParseInvalidXml() {
         pooledXmlParser.parseXml("<noxml>");
     }
 }

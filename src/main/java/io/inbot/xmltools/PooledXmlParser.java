@@ -24,13 +24,15 @@ package io.inbot.xmltools;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import io.inbot.xmltools.exceptions.RethrownException;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutionException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -63,42 +65,38 @@ public class PooledXmlParser {
                         DocumentBuilder builder = dbf.newDocumentBuilder();
                         return builder;
                     } catch (ParserConfigurationException e) {
-                        throw new IllegalStateException(e);
+                        throw RethrownException.rethrow(e);
                     }
                 }
             }
         );
     }
 
-    public Document parseXml(final Reader r) throws SAXException, IOException {
-        final InputSource inputSource = new InputSource(r);
-        return parse(inputSource);
+    public Document parseXml(final Reader r) {
+        return parse(new InputSource(r));
     }
 
-	public Document parseXml(final InputStream inputStream, final String encoding) throws SAXException, IOException {
+	public Document parseXml(final InputStream inputStream, final Charset encoding)  {
 	    return parseXml(new BufferedReader(new InputStreamReader(inputStream, encoding)));
 	}
 
-    public Document parseXml(final String xmlBuffer) throws SAXException {
-        try {
-			return parseXml(new ByteArrayInputStream(xmlBuffer.getBytes("UTF-8")), "UTF-8");
-		} catch (UnsupportedEncodingException e) {
-			throw new IllegalStateException("utf-8 not supported", e);
-		} catch (IOException e) {
-			throw new IllegalStateException("ioerror parsing string", e);
-		}
+    public Document parseXml(final String xmlBuffer) {
+			return parseXml(new ByteArrayInputStream(xmlBuffer.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8);
     }
 
-    public Document parse(final InputSource inputSource) throws SAXException,
-            IOException {
-        return getDocumentBuilderForCurrentThread().parse(inputSource);
+    public Document parse(final InputSource inputSource) {
+        try {
+            return getDocumentBuilderForCurrentThread().parse(inputSource);
+        } catch (SAXException | IOException e) {
+            throw RethrownException.rethrow(e);
+        }
     }
 
     public DocumentBuilder getDocumentBuilderForCurrentThread()  {
         try {
             return documentBuilderPool.get(Thread.currentThread().getId());
         } catch (ExecutionException e) {
-            throw new IllegalStateException(e);
+            throw RethrownException.rethrow(e.getCause());
         }
     }
 }

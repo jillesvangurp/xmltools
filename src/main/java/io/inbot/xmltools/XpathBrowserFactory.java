@@ -1,10 +1,9 @@
 package io.inbot.xmltools;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
+import java.nio.charset.Charset;
 import org.w3c.dom.Node;
-import org.xml.sax.SAXException;
 
 public class XpathBrowserFactory {
 
@@ -16,15 +15,15 @@ public class XpathBrowserFactory {
         this.cache = cache;
     }
 
-    public XPathBrowser browse(Reader r) throws SAXException, IOException {
+    public XPathBrowser browse(Reader r) {
         return new XPathBrowser(cache, parser.parseXml(r));
     }
 
-    public XPathBrowser browse(InputStream is, String encoding) throws SAXException, IOException {
+    public XPathBrowser browse(InputStream is, Charset encoding) {
         return new XPathBrowser(cache, parser.parseXml(is, encoding));
     }
 
-    public XPathBrowser browse(String xml) throws SAXException {
+    public XPathBrowser browse(String xml) {
         return new XPathBrowser(cache, parser.parseXml(xml));
     }
 
