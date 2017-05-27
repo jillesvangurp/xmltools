@@ -119,13 +119,13 @@ public class XPathBrowserTest {
 
     public void shouldFindMatchingNodes() throws XPathExpressionException {
 		int count = 0;
-		Node originalRoot = xpath.currentNode();
+		Node originalRoot = xpath.rootNode();
 		for( XPathBrowser b: xpath.browseMatching("/root/list/item")) {
 			count++;
-	    	assertThat("browser should have different node", originalRoot != b.currentNode());
+	    	assertThat("browser should have different node", originalRoot != b.rootNode());
 		}
 		assertThat(count, equalTo(2));
-		assertThat("original browser should still have root", originalRoot == xpath.currentNode());
+		assertThat("original browser should still have root", originalRoot == xpath.rootNode());
 	}
 
     @Test(expectedExceptions=UnsupportedOperationException.class)
@@ -136,13 +136,13 @@ public class XPathBrowserTest {
 	public void shouldBrowseItemsWithoutExpression() throws XPathExpressionException {
 	    xpath = xpath.browseFirst("/root/list");
     	int count = 0;
-    	Node originalRoot = xpath.currentNode();
+    	Node originalRoot = xpath.rootNode();
     	for( XPathBrowser b: xpath.browseSubNodes()) {
     		count++;
-        	assertThat("browser should cd to node", originalRoot != b.currentNode());
+        	assertThat("browser should cd to node", originalRoot != b.rootNode());
     	}
     	assertThat(count, equalTo(2));
-        assertThat("original browser should still have root", originalRoot == xpath.currentNode());
+        assertThat("original browser should still have root", originalRoot == xpath.rootNode());
     }
 
     public void shouldThrowExceptionOnGetFirstNodeThatDoesNotExist() throws XPathExpressionException {

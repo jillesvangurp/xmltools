@@ -28,6 +28,8 @@ import java.util.Iterator;
 import java.util.Locale;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 import javax.xml.namespace.QName;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
@@ -48,12 +50,12 @@ import org.w3c.dom.NodeList;
  */
 public class XPathBrowser {
 
-    private final Node currentNode;
+    private final Node rootNode;
     private final XPathExpressionCache expressionCache;
 
     XPathBrowser(XPathExpressionCache expressionCache, Node node) {
         this.expressionCache = expressionCache;
-        currentNode=node;
+        this.rootNode=node;
     }
 
     /**
@@ -80,7 +82,7 @@ public class XPathBrowser {
      *        node from which the (relative) expression is evaluated.
      * @param expr
      *        xpath expression.
-     * @return result of the expression.
+     * @return result of the expression or false if the node was absent or empty.
      */
     public boolean getBoolean(final Node n, final String expr) {
         return getString(n, expr).map(s->Boolean.valueOf(s)).orElse(false);
@@ -94,7 +96,7 @@ public class XPathBrowser {
      * @return result of the expression.
      */
     public boolean getBoolean(final String expr) {
-        return getBoolean(currentNode(), expr);
+        return getBoolean(rootNode(), expr);
     }
 
     /**
@@ -126,7 +128,7 @@ public class XPathBrowser {
      * @return result of the expression.
      */
     public Optional<Double> getDouble(final String expr) {
-        return getDouble(currentNode(), expr);
+        return getDouble(rootNode(), expr);
     }
 
     /**
@@ -158,7 +160,7 @@ public class XPathBrowser {
      * @return result of the expression.
      */
     public Optional<Integer> getInt(final String expr) {
-        return getInt(currentNode(), expr);
+        return getInt(rootNode(), expr);
     }
 
     /**
@@ -199,7 +201,7 @@ public class XPathBrowser {
      * @return result of the expression.
      */
     public Optional<Long> getLong(final String expr) {
-        return getLong(currentNode(), expr);
+        return getLong(rootNode(), expr);
     }
 
     /**
@@ -235,7 +237,7 @@ public class XPathBrowser {
      * @return result of the expression.
      */
     public Optional<String> getString(final String expr) {
-        String s = ((String) eval(expr, currentNode(), XPathConstants.STRING)).trim();
+        String s = ((String) eval(expr, rootNode(), XPathConstants.STRING)).trim();
         if(StringUtils.isBlank(s)) {
             return Optional.empty();
         } else {
@@ -257,7 +259,7 @@ public class XPathBrowser {
 	 * @throws IllegalArgumentException if the node does not exist
 	 */
 	public Optional<Node> getFirstNode(String expr) {
-		return getFirstNode(currentNode(), expr);
+		return getFirstNode(rootNode(), expr);
 	}
 
 	/**
@@ -296,7 +298,7 @@ public class XPathBrowser {
 	 * @return a list of nodes matching the expression
 	 */
 	public NodeList getNodeList(final String expr) {
-	    return (NodeList) eval(expr, currentNode(), XPathConstants.NODESET);
+	    return (NodeList) eval(expr, rootNode(), XPathConstants.NODESET);
 	}
 
 	/**
@@ -326,7 +328,7 @@ public class XPathBrowser {
      * @return array with matching values
      */
     public String[] getStringValues(final String expr) {
-        return getStringValues(currentNode(), expr);
+        return getStringValues(rootNode(), expr);
     }
 
     /**
@@ -344,8 +346,8 @@ public class XPathBrowser {
     /**
      * @return the current node; expressions are evaluated relative to this node.
      */
-    public Node currentNode() {
-	    return currentNode;
+    public Node rootNode() {
+	    return rootNode;
 	}
 
     public XPathBrowser browse(final Node node) {
@@ -356,12 +358,20 @@ public class XPathBrowser {
         return new XPathBrowser(expressionCache, getFirstNode(expression).orElseThrow(() -> new NoSuchElementException("node does not exist for " + expression)));
     }
 
+    public Stream<XPathBrowser> streamSubNode() {
+        return StreamSupport.stream(browseSubNodes().spliterator(), false);
+    }
+
+    public Stream<XPathBrowser> streamMatching(String expr) {
+        return StreamSupport.stream(browseMatching(expr).spliterator(), false);
+    }
+
     public Iterable<XPathBrowser> browseSubNodes() {
     	return browseMatching("./*");
     }
 
     public Iterable<XPathBrowser> browseMatching(final String expr) {
-    	final NodeList nodeList = getNodeList(currentNode(), expr);
+    	final NodeList nodeList = getNodeList(rootNode(), expr);
     	final XPathBrowser parent = this;
     	return new Iterable<XPathBrowser>() {
 
