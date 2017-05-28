@@ -155,7 +155,11 @@ public class XPathBrowserTest {
     }
 
     public void shouldStreamSubNodes() {
-        browser.streamMatching("/root/list").map(itemNode -> itemNode.getString().get()).forEach(s -> StringUtils.isNotBlank(s));;
+        assertThat(browser.streamMatching("/root/list/item").count(),equalTo(2l));
+        browser.streamMatching("/root/list/item")
+            // browse each of the item nodes and extract the string value
+            .map(itemNode -> itemNode.getString().get())
+            .forEach(s -> assertThat("not empty",StringUtils.isNotBlank(s)));
     }
 
     public void shouldHandleNumbers() {
@@ -185,5 +189,11 @@ public class XPathBrowserTest {
         assertThat(attributeMap.size(),equalTo(2));
         assertThat(attributeMap.get("foo"),equalTo("bar"));
         assertThat(attributeMap.get("bar"),equalTo("foo"));
+    }
+
+    public void shouldReturnOptionalEmpty() {
+        assertThat("ignore blank values",browser.getString("/root/noString").isPresent() == false);
+        assertThat("node does not exist",browser.getString("/root/idontexist").isPresent() == false);
+        assertThat("node does not exist",browser.getLong("/root/idontexist").isPresent() == false);
     }
 }

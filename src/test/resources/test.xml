@@ -1,5 +1,6 @@
 <root>
     <string>foo</string>
+    <noString></noString>
     <double>0.42</double>
     <long>42</long>
     <bool>True</bool>
