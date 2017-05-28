@@ -26,7 +26,10 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
+import java.util.Locale;
 import javax.xml.xpath.XPathExpressionException;
 import org.apache.commons.lang3.StringUtils;
 import org.testng.AssertJUnit;
@@ -152,5 +155,18 @@ public class XPathBrowserTest {
 
     public void shouldStreamSubNodes() {
         browser.streamMatching("/root/list").map(itemNode -> itemNode.getString().get()).forEach(s -> StringUtils.isNotBlank(s));;
+    }
+
+    public void shouldHandleNumbers() {
+        XPathBrowser browser = xpbf.browse(this.getClass().getResourceAsStream("/test_numbers.xml"), StandardCharsets.UTF_8);
+
+        Number piDouble = browser.getNumber(Locale.ENGLISH, "/root/ilikepi").get();
+        assertThat(piDouble.getClass(), equalTo(Double.class));
+
+        BigDecimal bigDecimal = browser.getBigDecimal(Locale.ENGLISH, "/root/ilikepi").get();
+        assertThat(bigDecimal.toString(),equalTo(browser.getString("/root/ilikepi").get()));
+
+        BigInteger bigInteger = browser.getBigInteger("/root/reallybiglong").get();
+        assertThat(bigInteger.toString(),equalTo(browser.getString("/root/reallybiglong").get()));
     }
 }

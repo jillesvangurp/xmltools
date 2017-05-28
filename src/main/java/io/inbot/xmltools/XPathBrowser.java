@@ -22,8 +22,12 @@
 package io.inbot.xmltools;
 
 import io.inbot.xmltools.exceptions.RethrownException;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
+import java.text.ParsePosition;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.NoSuchElementException;
@@ -170,14 +174,40 @@ public class XPathBrowser {
 		return getInt(".");
     }
 
+    public Optional<Number> getNumber(Locale locale, final String expr) {
+        return getNumber(locale,rootNode,expr);
+    }
+
     public Optional<Number> getNumber(Locale locale, final Node n, final String expr) {
-            return getString(n, expr).map(s -> {
-                try {
-                    return NumberFormat.getInstance(locale).parse(s);
-                } catch (ParseException e) {
-                    throw RethrownException.rethrow(e);
-                }
-            });
+        return getString(n, expr).map(s -> {
+            try {
+                return NumberFormat.getInstance(locale).parse(s);
+            } catch (ParseException e) {
+                throw RethrownException.rethrow(e);
+            }
+        });
+    }
+
+    public Optional<BigDecimal> getBigDecimal(Locale locale, final String expr) {
+        return getBigDecimal(locale,rootNode, expr);
+    }
+
+    public Optional<BigDecimal> getBigDecimal(Locale locale, final Node n, final String expr) {
+        return getString(n, expr).map(s -> {
+            DecimalFormat nf = (DecimalFormat)NumberFormat.getInstance(locale);
+            nf.setParseBigDecimal(true);
+            return (BigDecimal)nf.parse(s, new ParsePosition(0));
+        });
+    }
+
+    public Optional<BigInteger> getBigInteger(final String expr) {
+        return getBigInteger(rootNode, expr);
+    }
+
+    public Optional<BigInteger> getBigInteger(final Node n, final String expr) {
+        return getString(n, expr).map(s -> {
+            return new BigInteger(s);
+        });
     }
 
     /**
