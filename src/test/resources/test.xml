@@ -7,4 +7,5 @@
         <item>1</item>
         <item>2</item>
     </list>
+    <attrnode foo="bar" bar="foo" />
 </root>

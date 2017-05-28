@@ -1,10 +1,11 @@
 <root xmlns="http://domain.com/rootns" xmlns:foo="http://domain.com/foons">
     <string>foo</string>
     <foo:double>0.42</foo:double>
-    <long>42</long>
+    <long>42</long>    
     <bool>True</bool>
     <list>
         <item>1</item>
         <item>2</item>
     </list>
+    <attrnode foo="bar" />
 </root>

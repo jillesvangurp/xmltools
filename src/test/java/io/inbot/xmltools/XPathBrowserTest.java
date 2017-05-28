@@ -30,6 +30,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
+import java.util.Map;
 import javax.xml.xpath.XPathExpressionException;
 import org.apache.commons.lang3.StringUtils;
 import org.testng.AssertJUnit;
@@ -123,13 +124,13 @@ public class XPathBrowserTest {
 
     public void shouldFindMatchingNodes() throws XPathExpressionException {
 		int count = 0;
-		Node originalRoot = browser.rootNode();
+		Node originalRoot = browser.node();
 		for( XPathBrowser b: browser.browseMatching("/root/list/item")) {
 			count++;
-	    	assertThat("browser should have different node", originalRoot != b.rootNode());
+	    	assertThat("browser should have different node", originalRoot != b.node());
 		}
 		assertThat(count, equalTo(2));
-		assertThat("original browser should still have root", originalRoot == browser.rootNode());
+		assertThat("original browser should still have root", originalRoot == browser.node());
 	}
 
     @Test(expectedExceptions=UnsupportedOperationException.class)
@@ -140,13 +141,13 @@ public class XPathBrowserTest {
 	public void shouldBrowseItemsWithoutExpression() throws XPathExpressionException {
 	    browser = browser.browseFirst("/root/list");
     	int count = 0;
-    	Node originalRoot = browser.rootNode();
+    	Node originalRoot = browser.node();
     	for( XPathBrowser b: browser.browseSubNodes()) {
     		count++;
-        	assertThat("browser should cd to node", originalRoot != b.rootNode());
+        	assertThat("browser should cd to node", originalRoot != b.node());
     	}
     	assertThat(count, equalTo(2));
-        assertThat("original browser should still have root", originalRoot == browser.rootNode());
+        assertThat("original browser should still have root", originalRoot == browser.node());
     }
 
     public void shouldThrowExceptionOnGetFirstNodeThatDoesNotExist() throws XPathExpressionException {
@@ -168,5 +169,21 @@ public class XPathBrowserTest {
 
         BigInteger bigInteger = browser.getBigInteger("/root/reallybiglong").get();
         assertThat(bigInteger.toString(),equalTo(browser.getString("/root/reallybiglong").get()));
+    }
+
+    public void shouldHandleAttributes() {
+        // different ways of getting at node attributes
+        // the xpath way
+        String value = browser.getString("/root/attrnode/@foo").get();
+        assertThat(value,equalTo("bar"));
+
+        // using syntactic sugar to do the same
+        assertThat(browser.browseFirst("/root/attrnode").getNodeAttribute("foo").get(),equalTo("bar"));
+
+        // or via a convenient map of attributes
+        Map<String, String> attributeMap = browser.browseFirst("/root/attrnode").nodeAttributes();
+        assertThat(attributeMap.size(),equalTo(2));
+        assertThat(attributeMap.get("foo"),equalTo("bar"));
+        assertThat(attributeMap.get("bar"),equalTo("foo"));
     }
 }

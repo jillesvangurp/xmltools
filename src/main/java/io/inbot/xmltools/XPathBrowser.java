@@ -30,22 +30,24 @@ import java.text.ParseException;
 import java.text.ParsePosition;
 import java.util.Iterator;
 import java.util.Locale;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.TreeMap;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import javax.xml.namespace.QName;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import org.apache.commons.lang3.StringUtils;
+import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 /**
- * Simple file system abstraction over XML documents that allows you to browse the XML document using xpath expressions.
+ * Simple browser abstraction over XML documents that allows you to browse the XML document using xpath expressions against a current node.
  *
- *
- * It's reuses xpath expressions using the {@link XPathExpressionCache}. This is a lot faster than recompiling the expressions every time.
+ * It reuses xpath expressions using the {@link XPathExpressionCache}. This is a lot faster than recompiling the expressions every time.
  *
  * Note, you should use the XPathBrowserFactory for creating instances.
  *
@@ -100,7 +102,7 @@ public class XPathBrowser {
      * @return result of the expression.
      */
     public boolean getBoolean(final String expr) {
-        return getBoolean(rootNode(), expr);
+        return getBoolean(node(), expr);
     }
 
     /**
@@ -132,7 +134,7 @@ public class XPathBrowser {
      * @return result of the expression.
      */
     public Optional<Double> getDouble(final String expr) {
-        return getDouble(rootNode(), expr);
+        return getDouble(node(), expr);
     }
 
     /**
@@ -164,7 +166,7 @@ public class XPathBrowser {
      * @return result of the expression.
      */
     public Optional<Integer> getInt(final String expr) {
-        return getInt(rootNode(), expr);
+        return getInt(node(), expr);
     }
 
     /**
@@ -231,7 +233,7 @@ public class XPathBrowser {
      * @return result of the expression.
      */
     public Optional<Long> getLong(final String expr) {
-        return getLong(rootNode(), expr);
+        return getLong(node(), expr);
     }
 
     /**
@@ -267,7 +269,7 @@ public class XPathBrowser {
      * @return result of the expression.
      */
     public Optional<String> getString(final String expr) {
-        String s = ((String) eval(expr, rootNode(), XPathConstants.STRING)).trim();
+        String s = ((String) eval(expr, node(), XPathConstants.STRING)).trim();
         if(StringUtils.isBlank(s)) {
             return Optional.empty();
         } else {
@@ -289,7 +291,7 @@ public class XPathBrowser {
 	 * @throws IllegalArgumentException if the node does not exist
 	 */
 	public Optional<Node> getFirstNode(String expr) {
-		return getFirstNode(rootNode(), expr);
+		return getFirstNode(node(), expr);
 	}
 
 	/**
@@ -328,7 +330,7 @@ public class XPathBrowser {
 	 * @return a list of nodes matching the expression
 	 */
 	public NodeList getNodeList(final String expr) {
-	    return (NodeList) eval(expr, rootNode(), XPathConstants.NODESET);
+	    return (NodeList) eval(expr, node(), XPathConstants.NODESET);
 	}
 
 	/**
@@ -358,7 +360,7 @@ public class XPathBrowser {
      * @return array with matching values
      */
     public String[] getStringValues(final String expr) {
-        return getStringValues(rootNode(), expr);
+        return getStringValues(node(), expr);
     }
 
     /**
@@ -376,9 +378,26 @@ public class XPathBrowser {
     /**
      * @return the current node; expressions are evaluated relative to this node.
      */
-    public Node rootNode() {
+    public Node node() {
 	    return rootNode;
 	}
+
+    public Optional<String> getNodeAttribute(String key) {
+        return getString("@"+key);
+    }
+
+    public Map<String,String> nodeAttributes() {
+        NamedNodeMap attributes = rootNode.getAttributes();
+        TreeMap<String,String> map = new TreeMap<>();
+        if(attributes != null) {
+            attributes.getLength();
+            for(int i=0; i<attributes.getLength();i++) {
+                Node attributeNode = attributes.item(i);
+                map.put(attributeNode.getNodeName(), getString(attributeNode, ".").get());
+            }
+        }
+        return map;
+    }
 
     public XPathBrowser browse(final Node node) {
         return new XPathBrowser(expressionCache, node);
@@ -401,7 +420,7 @@ public class XPathBrowser {
     }
 
     public Iterable<XPathBrowser> browseMatching(final String expr) {
-    	final NodeList nodeList = getNodeList(rootNode(), expr);
+    	final NodeList nodeList = getNodeList(node(), expr);
     	final XPathBrowser parent = this;
     	return new Iterable<XPathBrowser>() {
 
