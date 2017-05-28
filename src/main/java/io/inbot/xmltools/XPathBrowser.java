@@ -358,7 +358,7 @@ public class XPathBrowser {
         return new XPathBrowser(expressionCache, getFirstNode(expression).orElseThrow(() -> new NoSuchElementException("node does not exist for " + expression)));
     }
 
-    public Stream<XPathBrowser> streamSubNode() {
+    public Stream<XPathBrowser> streamSubNodes() {
         return StreamSupport.stream(browseSubNodes().spliterator(), false);
     }
 

@@ -28,6 +28,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import javax.xml.xpath.XPathExpressionException;
+import org.apache.commons.lang3.StringUtils;
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -37,7 +38,7 @@ import org.xml.sax.SAXException;
 @Test
 public class XPathBrowserTest {
 
-    private XPathBrowser xpath;
+    private XPathBrowser browser;
 
     private Node root;
 
@@ -47,105 +48,109 @@ public class XPathBrowserTest {
 	public void before() throws Exception {
         xpbf = new XpathBrowserFactory(new PooledXmlParser(20, 20), new XPathExpressionCache(20,10000, 1000, 20));
 
-        xpath = xpbf.browse(this.getClass().getResourceAsStream("/test.xml"), StandardCharsets.UTF_8);
-        root = xpath.getNodeList("/root").item(0);
+        browser = xpbf.browse(this.getClass().getResourceAsStream("/test.xml"), StandardCharsets.UTF_8);
+        root = browser.getNodeList("/root").item(0);
     }
 
     public void shouldExtractFromNamespacedXml() throws SAXException, IOException, XPathExpressionException {
-        xpath = xpbf.browse(this.getClass().getResourceAsStream("/test-with-ns.xml"), StandardCharsets.UTF_8);
-        AssertJUnit.assertEquals(0.42,xpath.getDouble("/root/double").get());
+        browser = xpbf.browse(this.getClass().getResourceAsStream("/test-with-ns.xml"), StandardCharsets.UTF_8);
+        AssertJUnit.assertEquals(0.42,browser.getDouble("/root/double").get());
     }
 
     public void shouldHandleBooleans() throws XPathExpressionException {
-    	assertThat("should be true", xpath.getBoolean("/root/bool"));
-    	assertThat("should be true", xpath.getBoolean(root, "bool"));
-    	xpath = xpath.browseFirst("/root/bool");
-        assertThat("should get value from current node", xpath.getBoolean());
-        assertThat("should be false", !xpath.getBoolean(root, "string"));
+    	assertThat("should be true", browser.getBoolean("/root/bool"));
+    	assertThat("should be true", browser.getBoolean(root, "bool"));
+    	browser = browser.browseFirst("/root/bool");
+        assertThat("should get value from current node", browser.getBoolean());
+        assertThat("should be false", !browser.getBoolean(root, "string"));
     }
 
     public void shouldHandleStrings() throws XPathExpressionException {
-    	assertThat(xpath.getString("/root/string").get(), equalTo("foo"));
-    	assertThat(xpath.getString(root, "string").get(), equalTo("foo"));
-        xpath = xpath.browseFirst("/root/string");
-        assertThat(xpath.getString().get(), equalTo("foo"));
+    	assertThat(browser.getString("/root/string").get(), equalTo("foo"));
+    	assertThat(browser.getString(root, "string").get(), equalTo("foo"));
+        browser = browser.browseFirst("/root/string");
+        assertThat(browser.getString().get(), equalTo("foo"));
 
     }
 
     @Test(expectedExceptions = NumberFormatException.class)
     public void shouldHandleLongs() throws XPathExpressionException {
-    	assertThat(xpath.getLong("/root/long").get(), equalTo(42l));
-    	assertThat(xpath.getLong(root, "long").get(), equalTo(42l));
-    	xpath = xpath.browseFirst("/root/long");
-        assertThat(xpath.getLong().get(), equalTo(42l));
-        xpath.getLong("/root/string");
+    	assertThat(browser.getLong("/root/long").get(), equalTo(42l));
+    	assertThat(browser.getLong(root, "long").get(), equalTo(42l));
+    	browser = browser.browseFirst("/root/long");
+        assertThat(browser.getLong().get(), equalTo(42l));
+        browser.getLong("/root/string");
     }
 
     @Test(expectedExceptions = NumberFormatException.class)
     public void shouldHandleDoubles() throws XPathExpressionException {
-    	assertThat(xpath.getDouble("/root/double").get(), equalTo(0.42));
-    	assertThat(xpath.getDouble(root, "double").get(), equalTo(0.42));
-    	xpath = xpath.browseFirst("/root/double");
-        assertThat(xpath.getDouble().get(), equalTo(0.42));
-        xpath.getDouble("/root/string");
+    	assertThat(browser.getDouble("/root/double").get(), equalTo(0.42));
+    	assertThat(browser.getDouble(root, "double").get(), equalTo(0.42));
+    	browser = browser.browseFirst("/root/double");
+        assertThat(browser.getDouble().get(), equalTo(0.42));
+        browser.getDouble("/root/string");
     }
 
     @Test(expectedExceptions = NumberFormatException.class)
     public void shouldHandleInts() throws XPathExpressionException {
-    	assertThat(xpath.getInt("/root/long").get(), equalTo(42));
-    	assertThat(xpath.getInt(root, "long").get(), equalTo(42));
-    	xpath = xpath.browseFirst("/root/long");
-        assertThat(xpath.getInt().get(), equalTo(42));
-        xpath.getInt("/root/string");
+    	assertThat(browser.getInt("/root/long").get(), equalTo(42));
+    	assertThat(browser.getInt(root, "long").get(), equalTo(42));
+    	browser = browser.browseFirst("/root/long");
+        assertThat(browser.getInt().get(), equalTo(42));
+        browser.getInt("/root/string");
     }
 
     public void shouldHandleNodeLists() throws XPathExpressionException {
-    	assertThat(xpath.getNodeList("/root/list/item").getLength(),equalTo(2));
-    	assertThat(xpath.getNodeList(root, "list/item").getLength(), equalTo(2));
+    	assertThat(browser.getNodeList("/root/list/item").getLength(),equalTo(2));
+    	assertThat(browser.getNodeList(root, "list/item").getLength(), equalTo(2));
     }
 
     public void shouldGetSubNode() throws XPathExpressionException {
-    	assertThat(xpath.getSubNode(root, "string"), notNullValue());
+    	assertThat(browser.getSubNode(root, "string"), notNullValue());
     }
 
     public void shouldGetStringValuesFromNodeList() throws XPathExpressionException {
-        String[] stringValues = xpath.getStringValues("/root/list/item");
+        String[] stringValues = browser.getStringValues("/root/list/item");
         assertThat(stringValues.length, equalTo(2));
         assertThat(stringValues[0], equalTo("1"));
-        stringValues = xpath.getStringValues(root, "list/item");
+        stringValues = browser.getStringValues(root, "list/item");
         assertThat(stringValues.length, equalTo(2));
         assertThat(stringValues[0], equalTo("1"));
     }
 
     public void shouldFindMatchingNodes() throws XPathExpressionException {
 		int count = 0;
-		Node originalRoot = xpath.rootNode();
-		for( XPathBrowser b: xpath.browseMatching("/root/list/item")) {
+		Node originalRoot = browser.rootNode();
+		for( XPathBrowser b: browser.browseMatching("/root/list/item")) {
 			count++;
 	    	assertThat("browser should have different node", originalRoot != b.rootNode());
 		}
 		assertThat(count, equalTo(2));
-		assertThat("original browser should still have root", originalRoot == xpath.rootNode());
+		assertThat("original browser should still have root", originalRoot == browser.rootNode());
 	}
 
     @Test(expectedExceptions=UnsupportedOperationException.class)
     public void shouldNotAllowRemoveOnBrowserIterator() throws XPathExpressionException {
-    	xpath.browseMatching("/root/list/item").iterator().remove();
+    	browser.browseMatching("/root/list/item").iterator().remove();
     }
 
 	public void shouldBrowseItemsWithoutExpression() throws XPathExpressionException {
-	    xpath = xpath.browseFirst("/root/list");
+	    browser = browser.browseFirst("/root/list");
     	int count = 0;
-    	Node originalRoot = xpath.rootNode();
-    	for( XPathBrowser b: xpath.browseSubNodes()) {
+    	Node originalRoot = browser.rootNode();
+    	for( XPathBrowser b: browser.browseSubNodes()) {
     		count++;
         	assertThat("browser should cd to node", originalRoot != b.rootNode());
     	}
     	assertThat(count, equalTo(2));
-        assertThat("original browser should still have root", originalRoot == xpath.rootNode());
+        assertThat("original browser should still have root", originalRoot == browser.rootNode());
     }
 
     public void shouldThrowExceptionOnGetFirstNodeThatDoesNotExist() throws XPathExpressionException {
-    	assertThat(xpath.getFirstNode("/idontexist").isPresent(),equalTo(false));
+    	assertThat(browser.getFirstNode("/idontexist").isPresent(),equalTo(false));
+    }
+
+    public void shouldStreamSubNodes() {
+        browser.streamMatching("/root/list").map(itemNode -> itemNode.getString().get()).forEach(s -> StringUtils.isNotBlank(s));;
     }
 }
