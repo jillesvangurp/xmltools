@@ -34,6 +34,7 @@ import java.io.Reader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Supplier;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -52,21 +53,26 @@ public class PooledXmlParser {
     private LoadingCache<Long, DocumentBuilder> documentBuilderPool;
 
     public PooledXmlParser(int threads, int expirationMinutes) {
+        this(threads,expirationMinutes, () -> {
+            try {
+                DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+                dbf.setValidating(false);
+                DocumentBuilder builder = dbf.newDocumentBuilder();
+                return builder;
+            } catch (ParserConfigurationException e) {
+                throw RethrownException.rethrow(e);
+            }
+        });
+    }
+
+    public PooledXmlParser(int threads, int expirationMinutes, Supplier<DocumentBuilder> dbSupplier) {
         // per thread cache of document builders
         documentBuilderPool = CacheBuilder.newBuilder()
             .maximumSize(threads)
             .build(new CacheLoader<Long, DocumentBuilder>() {
-
                 @Override
                 public DocumentBuilder load(Long id) throws Exception {
-                    try {
-                        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-                        dbf.setValidating(false);
-                        DocumentBuilder builder = dbf.newDocumentBuilder();
-                        return builder;
-                    } catch (ParserConfigurationException e) {
-                        throw RethrownException.rethrow(e);
-                    }
+                    return dbSupplier.get();
                 }
             }
         );
