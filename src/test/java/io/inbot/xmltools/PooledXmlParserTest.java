@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2012, Jilles van Gurp
+ * Copyright (c) 2012-2017, Jilles van Gurp
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,16 +21,34 @@
  */
 package io.inbot.xmltools;
 
-/**
- * This thread local ensures that each thread has its own cache for caching xpath expressions.
- */
-class XpathExpressionCacheThreadLocal extends ThreadLocal<XPathExpressionCache> {
-    /*
-     * (non-Javadoc)
-     * @see java.lang.ThreadLocal#initialValue()
-     */
-    @Override
-    protected XPathExpressionCache initialValue() {
-    	return new XPathExpressionCache(1000, 15);
+import io.inbot.xmltools.exceptions.RethrownException;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.Reader;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+
+@Test
+public class PooledXmlParserTest {
+
+    private PooledXmlParser pooledXmlParser;
+
+    @BeforeMethod
+    public void before() {
+        pooledXmlParser = new PooledXmlParser(20,20);
+    }
+
+    public void shouldParseFile() throws FileNotFoundException {
+        final Reader inputStream = new FileReader("src/test/resources/test.xml");
+        pooledXmlParser.parseXml(inputStream);
+    }
+
+    public void shouldParseString() {
+        pooledXmlParser.parseXml("<xml />");
+    }
+
+    @Test(expectedExceptions = RethrownException.class)
+    public void shouldNotParseInvalidXml() {
+        pooledXmlParser.parseXml("<noxml>");
     }
 }
